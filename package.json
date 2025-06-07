@@ -1,8 +1,8 @@
 {
-  "name": "mmm-template",
+  "name": "mmm-wootdeals",
   "version": "1.0.0",
-  "description": "[Module description]",
-  "main": "MMM-Template.js",
+  "description": "Magic Mirror module to display Woot deals",
+  "main": "MMM-WootDeals.js",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -10,21 +10,24 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+[GitHub url].git"
+    "url": "git+https://github.com/AdamKogut/MMM-WootDeals.git"
   },
   "keywords": [
     "template"
   ],
-  "author": "[Author]",
+  "author": "Adam Kogut",
   "license": "MIT",
   "bugs": {
-    "url": "[GitHub url]/issues"
+    "url": "https://github.com/AdamKogut/MMM-WootDeals/issues"
   },
-  "homepage": "[GitHub url]#readme",
+  "homepage": "https://github.com/AdamKogut/MMM-WootDeals#readme",
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@stylistic/eslint-plugin": "^2.7.2",
     "eslint": "^9.10.0",
     "globals": "^15.9.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
   }
 }

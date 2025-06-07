@@ -1,12 +1,29 @@
 const NodeHelper = require("node_helper")
+const fetch = require("node-fetch")
 
 module.exports = NodeHelper.create({
+  start() {
+    console.log("Starting node helper for MMM-WootDeals")
+  },
 
-  async socketNotificationReceived(notification, payload) {
-    if (notification === "GET_RANDOM_TEXT") {
-      const amountCharacters = payload.amountCharacters || 10
-      const randomText = Array.from({ length: amountCharacters }, () => String.fromCharCode(Math.floor(Math.random() * 26) + 97)).join("")
-      this.sendSocketNotification("EXAMPLE_NOTIFICATION", { text: randomText })
+  socketNotificationReceived(notification, payload) {
+    if (notification === "GET_WOOT_OFFERS") {
+      this.config = payload
+      this.getWootOffers()
     }
   },
+
+  async getWootOffers() {
+    try {
+      const response = await fetch("https://developer.woot.com/feed/Featured", {
+        headers: { "x-api-key": this.config.apiKey }
+      })
+      const data = await response.json()
+      // Assume offers are in data.Offers or similar
+      this.sendSocketNotification("WOOT_OFFERS", data.Offers || [])
+    } catch (err) {
+      console.error("Error fetching Woot offers:", err)
+      this.sendSocketNotification("WOOT_OFFERS", [])
+    }
+  }
 })
