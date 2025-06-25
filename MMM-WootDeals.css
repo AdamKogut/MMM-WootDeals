@@ -19,10 +19,6 @@
   border-collapse: separate;
   border-spacing: 16px 12px !important;
   margin: 0 auto;
-  width: 300px !important;
-  /* Set your desired total width here */
-  max-width: 100%;
-  table-layout: fixed;
 }
 
 .wootdeals-row {
