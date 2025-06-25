@@ -4,6 +4,7 @@ Module.register("MMM-WootDeals", {
     updateInterval: 60 * 60 * 1000, // Update every hour
     numRows: 1, // Number of rows to display
     numColumns: 1, // Number of columns to display
+    pageCycleInterval: 20 * 1000, // Cycle pages every 10 seconds (new)
   },
 
   /**
@@ -38,6 +39,9 @@ Module.register("MMM-WootDeals", {
     // set timeout for next random text
     this.updateIntervalID = setInterval(() => this.sendSocketNotification("GET_WOOT_OFFERS", this.config), this.config.updateInterval)
     this.sendSocketNotification("GET_WOOT_OFFERS", this.config)
+
+    // Start page cycling timer
+    this.startPageCycle()
   },
 
   suspend() {
@@ -45,6 +49,10 @@ Module.register("MMM-WootDeals", {
     if (this.updateIntervalID) {
       clearInterval(this.updateIntervalID)
       this.updateIntervalID = null
+    }
+    if (this.pageCycleIntervalID) {
+      clearInterval(this.pageCycleIntervalID)
+      this.pageCycleIntervalID = null
     }
   },
 
@@ -54,6 +62,21 @@ Module.register("MMM-WootDeals", {
       this.updateIntervalID = setInterval(() => this.sendSocketNotification("GET_WOOT_OFFERS", this.config), this.config.updateInterval)
       this.sendSocketNotification("GET_WOOT_OFFERS", this.config)
     }
+    if (!this.pageCycleIntervalID) {
+      this.startPageCycle()
+    }
+  },
+
+  startPageCycle() {
+    if (this.pageCycleIntervalID) {
+      clearInterval(this.pageCycleIntervalID)
+    }
+    this.pageCycleIntervalID = setInterval(() => {
+      if (!this.offers || this.offers.length === 0) return
+      const totalPages = Math.ceil(this.offers.length / this.itemsPerPage)
+      this.currentPage = (this.currentPage + 1) % totalPages
+      this.updateDom()
+    }, this.config.pageCycleInterval)
   },
 
   /**
@@ -65,18 +88,29 @@ Module.register("MMM-WootDeals", {
    */
   socketNotificationReceived: function (notification, payload) {
     if (notification === "WOOT_OFFERS") {
+      if (!payload || !Array.isArray(payload)) {
+        Log.error("MMM-WootDeals: Invalid payload received for Woot offers.")
+        return
+      }
+
+      Log.info("MMM-WootDeals: Received Woot offers:", payload)
       this.filterDeals(payload)
       this.updateDom()
     }
   },
-
+  getStyles() {
+    return ["MMM-WootDeals.css"]
+  },
   filterDeals(offers) {
     if (!offers || !Array.isArray(offers)) {
       return []
     }
 
     // Filter out offers that are not available or have no image
-    this.offers = offers.filter(offer => offer.IsSoldOut === false && offer.Photo != "")
+    this.offers = offers.filter(offer => offer.IsFeatured === true && offer.IsSoldOut === false && offer.Photo != "")
+    // Reset to first page and restart cycling when new offers arrive
+    this.currentPage = 0
+    this.startPageCycle()
   },
 
   /**
@@ -84,8 +118,10 @@ Module.register("MMM-WootDeals", {
    */
   getDom() {
     const wrapper = document.createElement("div")
+    wrapper.className = "wootdeals-wrapper"
     if (!this.offers.length) {
       wrapper.innerHTML = "Loading Woot offers..."
+      wrapper.classList.add("wootdeals-loading")
       return wrapper
     }
 
@@ -96,20 +132,43 @@ Module.register("MMM-WootDeals", {
 
     // Create a table for grid layout
     const table = document.createElement("table")
+    table.className = "wootdeals-table"
     let row
     pageOffers.forEach((offer, idx) => {
       if (idx % this.config.numColumns === 0) {
         row = document.createElement("tr")
+        row.className = "wootdeals-row"
         table.appendChild(row)
       }
       const cell = document.createElement("td")
+      cell.className = "wootdeals-cell"
       cell.innerHTML = `
-        <img src="${offer.ImageUrl}" style="max-width:100px;"><br>
-        <b>${offer.Title}</b>
+        <img src="${offer.Photo}" class="wootdeals-image"/><br>
+        <b class="wootdeals-title">${offer.Title}</b>
       `
       row.appendChild(cell)
     })
     wrapper.appendChild(table)
+
+    // Add page indicator (dots or text)
+    const totalPages = Math.ceil(this.offers.length / this.itemsPerPage)
+    if (totalPages > 1) {
+      const pageIndicator = document.createElement("div")
+      pageIndicator.className = "wootdeals-page-indicator"
+      if (totalPages <= 10) {
+        // Dots indicator
+        for (let i = 0; i < totalPages; i++) {
+          const dot = document.createElement("span")
+          dot.className = "wootdeals-page-dot" + (i === this.currentPage ? " wootdeals-page-dot-active" : "")
+          pageIndicator.appendChild(dot)
+        }
+      } else {
+        // Fallback to text indicator
+        pageIndicator.innerText = `Page ${this.currentPage + 1} of ${totalPages}`
+      }
+      wrapper.appendChild(pageIndicator)
+    }
+
     return wrapper
   },
 
@@ -120,6 +179,6 @@ Module.register("MMM-WootDeals", {
    * @param {number} payload the payload type.
    */
   notificationReceived(notification, payload) {
-    
+
   }
 })

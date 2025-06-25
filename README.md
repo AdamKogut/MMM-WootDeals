@@ -1,13 +1,10 @@
 # MMM-WootDeals
-Use this template for creating new MagicMirror² modules.
 
-See the [wiki page](https://github.com/Dennis-Rosenbaum/MMM-WootDeals/wiki) for an in depth overview of how to get started.
+MMM-WootDeals is a [MagicMirror²](https://github.com/MagicMirrorOrg/MagicMirror) module that displays the latest featured deals from Woot.com. The module fetches deals using the official Woot API and presents them in a configurable grid layout on your MagicMirror. You can set how many deals to show per page, how often to cycle through pages, and how frequently to refresh the deals. Each deal includes an image and title, and the module automatically cycles through all available offers.
 
-# MMM-WootDeals
+## Screenshot
 
-![Example of MMM-WootDeals](./example_1.png)
-
-[Module description]
+![Example of MMM-WootDeals](./wootdeals-screenshot.png)
 
 ## Installation
 
@@ -18,6 +15,8 @@ In your terminal, go to your [MagicMirror²][mm] Module folder and clone MMM-Woo
 ```bash
 cd ~/MagicMirror/modules
 git clone https://github.com/AdamKogut/MMM-WootDeals
+cd MMM-WootDeals
+npm i
 ```
 
 ### Update
@@ -34,7 +33,10 @@ To use this module, add it to the modules array in the `config/config.js` file:
 ```js
     {
         module: 'MMM-WootDeals',
-        position: 'lower_third'
+        position: 'lower_third',
+        config: {
+            apiKey: '',                // Your Woot API key (required)
+        }
     },
 ```
 
@@ -44,23 +46,33 @@ Or you could use all the options:
     {
         module: 'MMM-WootDeals',
         position: 'lower_third',
+        header: 'Woot Deals',
         config: {
-            exampleContent: 'Welcome world'
+            apiKey: '',                // Your Woot API key (required)
+            updateInterval: 60 * 60 * 1000, // How often to fetch new deals (in ms)
+            numRows: 1,                // Number of rows to display per page
+            numColumns: 1,             // Number of columns to display per page
+            pageCycleInterval: 20 * 1000 // How often to cycle pages (in ms)
         }
     },
 ```
 
 ## Configuration options
 
-Option|Possible values|Default|Description
-------|------|------|-----------
-`exampleContent`|`string`|not available|The content to show on the page
+Option             | Possible values | Default           | Description
+-------------------|----------------|-------------------|----------------------------------------------------------
+`apiKey`           | `string`       | `""`              | Your Woot API key (required). You can request an API key in the Woot! [forums](https://forums.woot.com/t/request-developer-api-key/734283)
+`updateInterval`   | `number`       | `60 * 60 * 1000`  | How often to fetch new deals, in milliseconds
+`numRows`          | `number`       | `1`               | Number of rows to display per page
+`numColumns`       | `number`       | `1`               | Number of columns to display per page
+`pageCycleInterval`| `number`       | `20 * 1000`       | How often to cycle pages, in milliseconds
 
 ## Sending notifications to the module
 
-Notification|Description
-------|-----------
-`TEMPLATE_RANDOM_TEXT`|Payload must contain the text that needs to be shown on this module
+Notification         | Payload type | Description
+---------------------|-------------|------------------------------------------------------
+`GET_WOOT_OFFERS`    | `object`    | Sent to node_helper to request new Woot offers (includes config)
+`WOOT_OFFERS`        | `array`     | Sent from node_helper to module with the latest offers
 
 ## Developer commands
 
