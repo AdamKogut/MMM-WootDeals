@@ -35,7 +35,7 @@ module.exports = NodeHelper.create({
         let data
         try {
           data = JSON.parse(body)
-          Log.info("Fetched Woot offers successfully:", data)
+          // Log.info("Fetched Woot offers successfully:", data)
         } catch (parseError) {
           Log.error("Error parsing Woot offers response:", parseError)
           this.sendSocketNotification("WOOT_OFFERS", [])

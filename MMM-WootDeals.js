@@ -93,7 +93,7 @@ Module.register("MMM-WootDeals", {
         return
       }
 
-      Log.info("MMM-WootDeals: Received Woot offers:", payload)
+      // Log.info("MMM-WootDeals: Received Woot offers:", payload)
       this.filterDeals(payload)
       this.updateDom()
     }
